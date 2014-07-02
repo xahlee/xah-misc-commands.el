@@ -36,8 +36,7 @@
 (defun xah-cycle-camel-style-case ()
   "Cyclically replace {camelStyle, camel_style} current word or text selection.
 actually, currently just change from camel to underscore. no cycle
-Note: this command is currently unstable.
-"
+WARNING: this command is currently unstable."
   (interactive)
   ;; this function sets a property 「'state」. Possible values are 0 to length of char_array.
   (let (input_text
@@ -48,12 +47,11 @@ Note: this command is currently unstable.
         (progn
           (setq startedWithRegion-p t )
           (setq p1 (region-beginning))
-          (setq p2 (region-end))
-          )
+          (setq p2 (region-end)))
       (let ((bds (bounds-of-thing-at-point 'word)))
         (setq startedWithRegion-p nil )
         (setq p1 (car bds))
-        (setq p2 (cdr bds)) ) )
+        (setq p2 (cdr bds))))
 
     (setq char_array [" " "_"])
 
@@ -73,61 +71,19 @@ Note: this command is currently unstable.
        ;; camel to underscore
        (
         (equal current_state 0)
-        (setq replace_text (replace-regexp-in-string "\\([A-Z]\\)" "_\\1" input_text) )
-(setq replace_text (downcase replace_text) )
-        )
+        (setq replace_text (replace-regexp-in-string "\\([A-Z]\\)" "_\\1" input_text))
+        (setq replace_text (downcase replace_text)))
        ((equal current_state 1)
-        (setq replace_text (replace-regexp-in-string "_\\([a-z]\\)" "\\,(upcase \\1)" input_text) )
-;; (setq replace_text (downcase replace_text) )
-        ) ) )
+        (setq replace_text (replace-regexp-in-string "_\\([a-z]\\)" "\\,(upcase \\1)" input_text))
+        ;; (setq replace_text (downcase replace_text) )
+        )))
 
     (save-restriction
       (narrow-to-region p1 p2)
       (delete-region (point-min) (point-max))
-      (insert replace_text)
-      )
+      (insert replace_text))
 
     (put 'xah-cycle-camel-style-case 'state next_state)
-    ) )
-
-(defun xah-cycle-hyphen-underscore-space ()
-  "Cyclically replace {underscore, space, hypen} chars on current word or text selection.
-When called repeatedly, this command cycles the {“_”, “-”, “ ”} characters."
-  (interactive)
-  ;; this function sets a property 「'state」. Possible values are 0 to length of charArray.
-  (let (inputText bds charArray p1 p2 currentState nextState changeFrom
-                 changeTo startedWithRegion-p )
-    (if (region-active-p)
-        (setq startedWithRegion-p t )
-      (setq startedWithRegion-p nil ) )
-
-    (setq bds (get-selection-or-unit 'glyphs))
-    (setq inputText (elt bds 0) p1 (elt bds 1) p2 (elt bds 2)  )
-
-    (setq charArray [" " "_" "-"])
-
-    ;; when called first time, set statet to 0
-    (setq currentState
-          (if (equal last-command this-command )
-            (get 'xah-cycle-hyphen-underscore-space 'state)
-            0 )
-          )
-
-      (setq nextState (% (+ currentState 1) (length charArray)))
-      (setq changeFrom (elt charArray currentState ))
-      (setq changeTo (elt charArray nextState ))
-
-    (setq inputText (replace-regexp-in-string changeFrom changeTo (buffer-substring-no-properties p1 p2)) )
-    (delete-region p1 p2)
-    (insert inputText)
-
-    (when (or (string= changeTo " ") startedWithRegion-p)
-      (goto-char p2)
-      (set-mark p1)
-      (setq deactivate-mark nil) )
-
-    (put 'xah-cycle-hyphen-underscore-space 'state nextState)
-
     ) )
 
 ;; (defun xah-convert-chinese-numeral (p1 p2 &optional φ-to-direction)
@@ -217,9 +173,7 @@ See also: `xah-remove-punctuation-trailing-redundant-space'."
             ((equal current-prefix-arg '(4)) "english")
             ((equal current-prefix-arg 1) "english")
             ((equal current-prefix-arg 2) "chinese")
-            (t "chinese")
-            )
-           ) ) )
+            (t "chinese")))))
   (let (
         (inputStr (buffer-substring-no-properties p1 p2))
         (ξ-english-chinese-punctuation-map
@@ -244,24 +198,21 @@ See also: `xah-remove-punctuation-trailing-redundant-space'."
           (or (string-match "。" inputStr)
               (string-match "，" inputStr)
               (string-match "？" inputStr)
-              (string-match "！" inputStr)
-              )          ;; (or (string-match ", " inputStr)
+              (string-match "！" inputStr)) ;; (or (string-match ", " inputStr)
           ;;     (string-match ".  " inputStr)
           ;;     (string-match "! " inputStr)
           ;;     (string-match "? " inputStr)
           ;;     (string-match ". " inputStr)
           ;;     )
           (setq φ-to-direction "english")
-        (setq φ-to-direction "chinese")
-        ))
+        (setq φ-to-direction "chinese")))
 
     (replace-pairs-region
      p1 p2
      (cond
       ((string= φ-to-direction "chinese") ξ-english-chinese-punctuation-map)
       ((string= φ-to-direction "english") (mapcar (lambda (ξpair) (vector (elt ξpair 1) (elt ξpair 0))) ξ-english-chinese-punctuation-map))
-      (t (user-error "Your 3rd argument 「%s」 isn't valid" φ-to-direction)) )
-     ) ) )
+      (t (user-error "Your 3rd argument 「%s」 isn't valid" φ-to-direction))))))
 
 (defun xah-convert-asian/ascii-space (p1 p2)
   "Change all space characters between Asian Ideographic one to ASCII one.
@@ -274,19 +225,17 @@ See also `xah-convert-english-chinese-punctuation'
 "
   (interactive
    (let ( (bds (get-selection-or-unit 'block)))
-     (list (elt bds 1) (elt bds 2) ) ) )
+     (list (elt bds 1) (elt bds 2))))
   (let ((ξ-space-char-map
          [
           ["　" " "]
           ]
          ))
     (replace-regexp-pairs-region p1 p2
- (if (string-match "　" (buffer-substring-no-properties p1 p2))
-     ξ-space-char-map
-   (mapcar (lambda (ξpair) (vector (elt ξpair 1) (elt ξpair 0))) ξ-space-char-map) )
- "FIXEDCASE" "LITERAL")
-    )
-  )
+                                 (if (string-match "　" (buffer-substring-no-properties p1 p2))
+                                     ξ-space-char-map
+                                   (mapcar (lambda (ξpair) (vector (elt ξpair 1) (elt ξpair 0))) ξ-space-char-map))
+                                 "FIXEDCASE" "LITERAL")))
 
 (defun xah-remove-punctuation-trailing-redundant-space (φp1 φp2)
   "Remove redundant whitespace after punctuation.
@@ -297,7 +246,7 @@ When called in emacs lisp code, the φp1 φp2 are cursor positions for region.
 See also `xah-convert-english-chinese-punctuation'."
   (interactive
    (let ( (bds (get-selection-or-unit 'block)))
-     (list (elt bds 1) (elt bds 2) ) ) )
+     (list (elt bds 1) (elt bds 2))))
   (replace-regexp-pairs-region φp1 φp2
                                [
                                 ;; clean up. Remove extra space.
@@ -307,7 +256,7 @@ See also `xah-convert-english-chinese-punctuation'."
                                 ["!  +" "! "]
                                 ["\\.  +" ". "]
 
-;; fullwidth punctuations
+                                ;; fullwidth punctuations
                                 ["， +" "，"]
                                 ["。 +" "。"]
                                 ["： +" "："]
@@ -316,7 +265,7 @@ See also `xah-convert-english-chinese-punctuation'."
                                 ["！ +" "！"]
                                 ["、 +" "、"]
                                 ]
-                               "FIXEDCASE" "LITERAL") )
+                               "FIXEDCASE" "LITERAL"))
 
 (defun xah-convert-fullwidth-chars (φp1 φp2 &optional φ-to-direction)
   "Convert ASCII chars to/from Unicode fullwidth version.
@@ -343,52 +292,47 @@ See also: `xah-remove-punctuation-trailing-redundant-space'."
             ((equal current-prefix-arg '(4)) "ascii")
             ((equal current-prefix-arg 1) "ascii")
             ((equal current-prefix-arg 2) "unicode")
-            (t "unicode")
-            )
-           ) ) )
+            (t "unicode")))))
   (let* (
-        (ξ-ascii-unicode-map
-         [
- ["0" "０"] ["1" "１"] ["2" "２"] ["3" "３"] ["4" "４"] ["5" "５"] ["6" "６"] ["7" "７"] ["8" "８"] ["9" "９"]
- ["A" "Ａ"] ["B" "Ｂ"] ["C" "Ｃ"] ["D" "Ｄ"] ["E" "Ｅ"] ["F" "Ｆ"] ["G" "Ｇ"] ["H" "Ｈ"] ["I" "Ｉ"] ["J" "Ｊ"] ["K" "Ｋ"] ["L" "Ｌ"] ["M" "Ｍ"] ["N" "Ｎ"] ["O" "Ｏ"] ["P" "Ｐ"] ["Q" "Ｑ"] ["R" "Ｒ"] ["S" "Ｓ"] ["T" "Ｔ"] ["U" "Ｕ"] ["V" "Ｖ"] ["W" "Ｗ"] ["X" "Ｘ"] ["Y" "Ｙ"] ["Z" "Ｚ"]
- ["a" "ａ"] ["b" "ｂ"] ["c" "ｃ"] ["d" "ｄ"] ["e" "ｅ"] ["f" "ｆ"] ["g" "ｇ"] ["h" "ｈ"] ["i" "ｉ"] ["j" "ｊ"] ["k" "ｋ"] ["l" "ｌ"] ["m" "ｍ"] ["n" "ｎ"] ["o" "ｏ"] ["p" "ｐ"] ["q" "ｑ"] ["r" "ｒ"] ["s" "ｓ"] ["t" "ｔ"] ["u" "ｕ"] ["v" "ｖ"] ["w" "ｗ"] ["x" "ｘ"] ["y" "ｙ"] ["z" "ｚ"]
- ["," "，"] ["." "．"] [":" "："] [";" "；"] ["!" "！"] ["?" "？"] ["\"" "＂"] ["'" "＇"] ["`" "｀"] ["^" "＾"] ["~" "～"] ["¯" "￣"] ["_" "＿"]
- ["&" "＆"] ["@" "＠"] ["#" "＃"] ["%" "％"] ["+" "＋"] ["-" "－"] ["*" "＊"] ["=" "＝"] ["<" "＜"] [">" "＞"] ["(" "（"] [")" "）"] ["[" "［"] ["]" "］"] ["{" "｛"] ["}" "｝"] ["(" "｟"] [")" "｠"] ["|" "｜"] ["¦" "￤"] ["/" "／"] ["\\" "＼"] ["¬" "￢"] ["$" "＄"] ["£" "￡"] ["¢" "￠"] ["₩" "￦"] ["¥" "￥"]
-          ]
-         )
-        (ξ-reverse-map (mapcar (lambda (ξpair) (vector (elt ξpair 1) (elt ξpair 0))) ξ-ascii-unicode-map))
+         (ξ-ascii-unicode-map
+          [
+           ["0" "０"] ["1" "１"] ["2" "２"] ["3" "３"] ["4" "４"] ["5" "５"] ["6" "６"] ["7" "７"] ["8" "８"] ["9" "９"]
+           ["A" "Ａ"] ["B" "Ｂ"] ["C" "Ｃ"] ["D" "Ｄ"] ["E" "Ｅ"] ["F" "Ｆ"] ["G" "Ｇ"] ["H" "Ｈ"] ["I" "Ｉ"] ["J" "Ｊ"] ["K" "Ｋ"] ["L" "Ｌ"] ["M" "Ｍ"] ["N" "Ｎ"] ["O" "Ｏ"] ["P" "Ｐ"] ["Q" "Ｑ"] ["R" "Ｒ"] ["S" "Ｓ"] ["T" "Ｔ"] ["U" "Ｕ"] ["V" "Ｖ"] ["W" "Ｗ"] ["X" "Ｘ"] ["Y" "Ｙ"] ["Z" "Ｚ"]
+           ["a" "ａ"] ["b" "ｂ"] ["c" "ｃ"] ["d" "ｄ"] ["e" "ｅ"] ["f" "ｆ"] ["g" "ｇ"] ["h" "ｈ"] ["i" "ｉ"] ["j" "ｊ"] ["k" "ｋ"] ["l" "ｌ"] ["m" "ｍ"] ["n" "ｎ"] ["o" "ｏ"] ["p" "ｐ"] ["q" "ｑ"] ["r" "ｒ"] ["s" "ｓ"] ["t" "ｔ"] ["u" "ｕ"] ["v" "ｖ"] ["w" "ｗ"] ["x" "ｘ"] ["y" "ｙ"] ["z" "ｚ"]
+           ["," "，"] ["." "．"] [":" "："] [";" "；"] ["!" "！"] ["?" "？"] ["\"" "＂"] ["'" "＇"] ["`" "｀"] ["^" "＾"] ["~" "～"] ["¯" "￣"] ["_" "＿"]
+           ["&" "＆"] ["@" "＠"] ["#" "＃"] ["%" "％"] ["+" "＋"] ["-" "－"] ["*" "＊"] ["=" "＝"] ["<" "＜"] [">" "＞"] ["(" "（"] [")" "）"] ["[" "［"] ["]" "］"] ["{" "｛"] ["}" "｝"] ["(" "｟"] [")" "｠"] ["|" "｜"] ["¦" "￤"] ["/" "／"] ["\\" "＼"] ["¬" "￢"] ["$" "＄"] ["£" "￡"] ["¢" "￠"] ["₩" "￦"] ["¥" "￥"]
+           ]
+          )
+         (ξ-reverse-map (mapcar (lambda (ξpair) (vector (elt ξpair 1) (elt ξpair 0))) ξ-ascii-unicode-map))
 
-        (cmdStates ["to-unicode" "to-ascii"])
-        (stateBefore (if (get 'xah-convert-fullwidth-chars 'state) (get 'xah-convert-fullwidth-chars 'state) 0))
-        (stateAfter (% (+ stateBefore (length cmdStates) 1) (length cmdStates)))
-)
+         (cmdStates ["to-unicode" "to-ascii"])
+         (stateBefore (if (get 'xah-convert-fullwidth-chars 'state) (get 'xah-convert-fullwidth-chars 'state) 0))
+         (stateAfter (% (+ stateBefore (length cmdStates) 1) (length cmdStates))))
 
-;"０\\|１\\|２\\|３\\|４\\|５\\|６\\|７\\|８\\|９\\|Ａ\\|Ｂ\\|Ｃ\\|Ｄ\\|Ｅ\\|Ｆ\\|Ｇ\\|Ｈ\\|Ｉ\\|Ｊ\\|Ｋ\\|Ｌ\\|Ｍ\\|Ｎ\\|Ｏ\\|Ｐ\\|Ｑ\\|Ｒ\\|Ｓ\\|Ｔ\\|Ｕ\\|Ｖ\\|Ｗ\\|Ｘ\\|Ｙ\\|Ｚ\\|ａ\\|ｂ\\|ｃ\\|ｄ\\|ｅ\\|ｆ\\|ｇ\\|ｈ\\|ｉ\\|ｊ\\|ｋ\\|ｌ\\|ｍ\\|ｎ\\|ｏ\\|ｐ\\|ｑ\\|ｒ\\|ｓ\\|ｔ\\|ｕ\\|ｖ\\|ｗ\\|ｘ\\|ｙ\\|ｚ"
+  ;"０\\|１\\|２\\|３\\|４\\|５\\|６\\|７\\|８\\|９\\|Ａ\\|Ｂ\\|Ｃ\\|Ｄ\\|Ｅ\\|Ｆ\\|Ｇ\\|Ｈ\\|Ｉ\\|Ｊ\\|Ｋ\\|Ｌ\\|Ｍ\\|Ｎ\\|Ｏ\\|Ｐ\\|Ｑ\\|Ｒ\\|Ｓ\\|Ｔ\\|Ｕ\\|Ｖ\\|Ｗ\\|Ｘ\\|Ｙ\\|Ｚ\\|ａ\\|ｂ\\|ｃ\\|ｄ\\|ｅ\\|ｆ\\|ｇ\\|ｈ\\|ｉ\\|ｊ\\|ｋ\\|ｌ\\|ｍ\\|ｎ\\|ｏ\\|ｐ\\|ｑ\\|ｒ\\|ｓ\\|ｔ\\|ｕ\\|ｖ\\|ｗ\\|ｘ\\|ｙ\\|ｚ"
 
-;(message "before %s" stateBefore)
-;(message "after %s" stateAfter)
-;(message "φ-to-direction %s" φ-to-direction)
-;(message "real-this-command  %s" this-command)
-;(message "real-last-command %s" last-command)
+  ;(message "before %s" stateBefore)
+  ;(message "after %s" stateAfter)
+  ;(message "φ-to-direction %s" φ-to-direction)
+  ;(message "real-this-command  %s" this-command)
+  ;(message "real-last-command %s" last-command)
 
-(let ((case-fold-search nil))
- (replace-pairs-region
- φp1 φp2
- (cond
-  ((string= φ-to-direction "unicode") ξ-ascii-unicode-map)
-  ((string= φ-to-direction "ascii") ξ-reverse-map)
-  ((string= φ-to-direction "auto")
-   (if (equal this-command last-command)
-       (if (eq stateBefore 0)
+    (let ((case-fold-search nil))
+      (replace-pairs-region
+       φp1 φp2
+       (cond
+        ((string= φ-to-direction "unicode") ξ-ascii-unicode-map)
+        ((string= φ-to-direction "ascii") ξ-reverse-map)
+        ((string= φ-to-direction "auto")
+         (if (equal this-command last-command)
+             (if (eq stateBefore 0)
+                 ξ-ascii-unicode-map
+               ξ-reverse-map
+               )
            ξ-ascii-unicode-map
-         ξ-reverse-map
-         )
-     ξ-ascii-unicode-map
-     ))
-      (t (user-error "Your 3rd argument 「%s」 isn't valid" φ-to-direction)) ) )
-)
-(put 'xah-convert-fullwidth-chars 'state stateAfter)
- ) )
+           ))
+        (t (user-error "Your 3rd argument 「%s」 isn't valid" φ-to-direction)))))
+    (put 'xah-convert-fullwidth-chars 'state stateAfter)))
 
 (defun xah-convert-latin-alphabet-gothic (φp1 φp2 φreverse-direction-p)
   "Replace English alphabets to Unicode gothic characters.
@@ -400,8 +344,8 @@ If any `universal-argument' is given, reverse direction.
 
 When called in elisp, the φp1 and φp2 are region begin/end positions to work on."
   (interactive
-   (let ((bds (get-selection-or-unit 'block)) )
-     (list (elt bds 1) (elt bds 2) current-prefix-arg )) )
+   (let ((bds (get-selection-or-unit 'block)))
+     (list (elt bds 1) (elt bds 2) current-prefix-arg )))
 
   (let (
         (latin-to-gothic [ ["A" "𝔄"] ["B" "𝔅"] ["C" "ℭ"] ["D" "𝔇"] ["E" "𝔈"] ["F" "𝔉"] ["G" "𝔊"] ["H" "ℌ"] ["I" "ℑ"] ["J" "𝔍"] ["K" "𝔎"] ["L" "𝔏"] ["M" "𝔐"] ["N" "𝔑"] ["O" "𝔒"] ["P" "𝔓"] ["Q" "𝔔"] ["R" "ℜ"] ["S" "𝔖"] ["T" "𝔗"] ["U" "𝔘"] ["V" "𝔙"] ["W" "𝔚"] ["X" "𝔛"] ["Y" "𝔜"] ["Z" "ℨ"] ["a" "𝔞"] ["b" "𝔟"] ["c" "𝔠"] ["d" "𝔡"] ["e" "𝔢"] ["f" "𝔣"] ["g" "𝔤"] ["h" "𝔥"] ["i" "𝔦"] ["j" "𝔧"] ["k" "𝔨"] ["l" "𝔩"] ["m" "𝔪"] ["n" "𝔫"] ["o" "𝔬"] ["p" "𝔭"] ["q" "𝔮"] ["r" "𝔯"] ["s" "𝔰"] ["t" "𝔱"] ["u" "𝔲"] ["v" "𝔳"] ["w" "𝔴"] ["x" "𝔵"] ["y" "𝔶"] ["z" "𝔷"] ])
@@ -413,11 +357,10 @@ When called in elisp, the φp1 and φp2 are region begin/end positions to work o
 
     (if φreverse-direction-p
         (progn (setq useMap gothic-to-latin))
-      (progn (setq useMap latin-to-gothic))
-      )
+      (progn (setq useMap latin-to-gothic)))
     (save-excursion
       (let ((case-fold-search nil))
-        (replace-pairs-region φp1 φp2 useMap ) ) ) ) )
+        (replace-pairs-region φp1 φp2 useMap )))))
 
 (defvar xah-bracketsList nil "a list of bracket pairs. ⁖ () {} [] “” ‘’ ‹› «» 「」 『』 ….")
 (setq xah-bracketsList '( "()" "{}" "[]" "<>" "“”" "‘’" "‹›" "«»" "「」" "『』" "【】" "〖〗" "〈〉" "《》" "〔〕" "⦅⦆" "〚〛" "⦃⦄"
@@ -637,7 +580,7 @@ Examples of changes:
 ["fuck" "f��k"]
 ["shit" "sh�t"]
 ["motherfucker" "momf��ker"]
-)) ) )
+))))
 
 (defun xah-escape-quotes ()
   "Replace 「\"」 by 「\\\"」 in current line or text selection."
@@ -646,7 +589,7 @@ Examples of changes:
          (p1 (elt bds 1))
          (p2 (elt bds 2)))
     ;; todo: might also call replace-quote
-    (replace-pairs-region p1 p2 '(["\"" "\\\""])) ) )
+    (replace-pairs-region p1 p2 '(["\"" "\\\""]))))
 
 (defun xah-unescape-quotes ()
   "Replace  「\\\"」 by 「\"」 in current line or text selection."
@@ -654,7 +597,7 @@ Examples of changes:
   (let* ((bds (get-selection-or-unit 'line))
         (p1 (elt bds 1))
         (p2 (elt bds 2)))
-    (replace-pairs-region p1 p2 '(["\\\"" "\""])) ) )
+    (replace-pairs-region p1 p2 '(["\\\"" "\""]))))
 
 (defun xah-remove-vowel-old (&optional ξstring ξfrom ξto)
   "Remove the following letters: {a e i o u}.
@@ -665,22 +608,22 @@ When called in lisp code, if ξstring is non-nil, returns a changed string.  If 
   (interactive
    (if (region-active-p)
        (list nil (region-beginning) (region-end))
-     (let ((bds (bounds-of-thing-at-point 'paragraph)) )
-       (list nil (car bds) (cdr bds)) ) ) )
+     (let ((bds (bounds-of-thing-at-point 'paragraph)))
+       (list nil (car bds) (cdr bds)))))
 
   (let (workOnStringP inputStr outputStr)
     (setq workOnStringP (if ξstring t nil))
     (setq inputStr (if workOnStringP ξstring (buffer-substring-no-properties ξfrom ξto)))
     (setq outputStr
           (let ((case-fold-search t))
-            (replace-regexp-in-string "a\\|e\\|i\\|o\\|u\\|" "" inputStr) )  )
+            (replace-regexp-in-string "a\\|e\\|i\\|o\\|u\\|" "" inputStr)))
 
     (if workOnStringP
         outputStr
       (save-excursion
         (delete-region ξfrom ξto)
         (goto-char ξfrom)
-        (insert outputStr) )) ) )
+        (insert outputStr)))))
 
 (defun xah-remove-vowel (ξstring &optional ξfrom-to-pair)
   "Remove the following letters: {a e i o u}.
@@ -693,27 +636,26 @@ list or vector pair.  Else, returns a changed string."
   (interactive
    (if (region-active-p)
        (list nil (vector (region-beginning) (region-end)))
-     (let ((bds (bounds-of-thing-at-point 'paragraph)) )
-       (list nil (vector (car bds) (cdr bds))) ) ) )
+     (let ((bds (bounds-of-thing-at-point 'paragraph)))
+       (list nil (vector (car bds) (cdr bds))))))
 
   (let (workOnStringP inputStr outputStr ξfrom ξto )
     (when ξfrom-to-pair
-        (setq ξfrom (elt ξfrom-to-pair 0) )
-        (setq ξto (elt ξfrom-to-pair 1) )
-      )
+      (setq ξfrom (elt ξfrom-to-pair 0))
+      (setq ξto (elt ξfrom-to-pair 1)))
 
     (setq workOnStringP (if ξfrom-to-pair nil t))
     (setq inputStr (if workOnStringP ξstring (buffer-substring-no-properties ξfrom ξto)))
     (setq outputStr
           (let ((case-fold-search t))
-            (replace-regexp-in-string "a\\|e\\|i\\|o\\|u\\|" "" inputStr) )  )
+            (replace-regexp-in-string "a\\|e\\|i\\|o\\|u\\|" "" inputStr)))
 
     (if workOnStringP
         outputStr
       (save-excursion
         (delete-region ξfrom ξto)
         (goto-char ξfrom)
-        (insert outputStr) )) ) )
+        (insert outputStr)))))
 
 
 
@@ -731,7 +673,6 @@ Whitespace here is considered any of {newline char, tab, space}."
 Experimental code.
 WARNING: If region has comment or string, the code'd be fucked up."
   (interactive "r")
-
   (save-excursion
     (save-restriction
       (narrow-to-region p1 p2)
@@ -743,10 +684,7 @@ WARNING: If region has comment or string, the code'd be fucked up."
                                      [";[\t\n]*}" "; }"]
                                      )
                                    t)
-      (indent-region p1 p2)
-      )
-    )
-  )
+      (indent-region p1 p2))))
 
 (defun xah-clean-whitespace ()
   "Delete trailing whitespace, and replace sequence of newlines into just 2.
@@ -755,18 +693,17 @@ Work on text selection or whole buffer."
   (let* (
          (bds (get-selection-or-unit 'buffer))
          (p1 (elt bds 1))
-         (p2 (elt bds 2))
-         )
+         (p2 (elt bds 2)))
     (save-excursion
       (save-restriction
         (narrow-to-region p1 p2)
         (progn
           (goto-char (point-min))
           (while (search-forward-regexp "[ \t]+\n" nil "noerror")
-            (replace-match "\n") ))
+            (replace-match "\n")))
         (progn
           (goto-char (point-min))
           (while (search-forward-regexp "\n\n\n+" nil "noerror")
-            (replace-match "\n\n") )) )) ))
+            (replace-match "\n\n")))))))
 
 (provide 'xah-misc-commands)
