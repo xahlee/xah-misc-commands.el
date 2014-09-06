@@ -194,7 +194,7 @@ See also: `xah-remove-punctuation-trailing-redundant-space'."
          ))
 
     (when (string= φ-to-direction "auto")
-      (if 
+      (if
           (or (string-match "。" inputStr)
               (string-match "，" inputStr)
               (string-match "？" inputStr)
@@ -583,7 +583,7 @@ Examples of changes:
 ))))
 
 (defun xah-twitterfy ()
-  "shorten words for twitter."
+  "Shorten words for Twitter 140 char limit."
   (interactive)
   (let* ((bds (get-selection-or-unit 'block))
          (p1 (elt bds 1))
@@ -707,24 +707,23 @@ WARNING: If region has comment or string, the code'd be fucked up."
                                    t)
       (indent-region p1 p2))))
 
-(defun xah-clean-whitespace ()
+(defun xah-clean-whitespace (p1 p2)
   "Delete trailing whitespace, and replace sequence of newlines into just 2.
 Work on text selection or whole buffer."
-  (interactive)
-  (let* (
-         (bds (get-selection-or-unit 'buffer))
-         (p1 (elt bds 1))
-         (p2 (elt bds 2)))
-    (save-excursion
-      (save-restriction
-        (narrow-to-region p1 p2)
-        (progn
-          (goto-char (point-min))
-          (while (search-forward-regexp "[ \t]+\n" nil "noerror")
-            (replace-match "\n")))
-        (progn
-          (goto-char (point-min))
-          (while (search-forward-regexp "\n\n\n+" nil "noerror")
-            (replace-match "\n\n")))))))
+  (interactive
+   (if (region-active-p)
+       (list (region-beginning) (region-end))
+     (list 1 (point-max))))
+  (save-excursion
+    (save-restriction
+      (narrow-to-region p1 p2)
+      (progn
+        (goto-char (point-min))
+        (while (search-forward-regexp "[ \t]+\n" nil "noerror")
+          (replace-match "\n")))
+      (progn
+        (goto-char (point-min))
+        (while (search-forward-regexp "\n\n\n+" nil "noerror")
+          (replace-match "\n\n"))))))
 
 (provide 'xah-misc-commands)
