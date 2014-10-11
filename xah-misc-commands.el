@@ -440,8 +440,7 @@ Examples of changes:
  「--」 ⇒ 「—」
  「~=」 ⇒ 「≈」
 
- In lisp program, the arguments P1 and P2 are region boundaries.
-"
+ In lisp program, the arguments P1 and P2 are region boundaries."
 ;; some examples for debug
 ;; do "‘em all -- done..."
 ;; I’am not
@@ -471,7 +470,7 @@ Examples of changes:
 
       (replace-pairs-region (point-min) (point-max)
                             [
-                             ["  —  " " — "]                        ; rid of extra space in em-dash
+                             ["  —  " " — "] ; rid of extra space in em-dash
                              [" , " ", "]
                              ])
 
@@ -594,6 +593,8 @@ Examples of changes:
                                   ["\\byour\\b" "ur"]
                                   ["\\band\\b" "＆"]
                                   [" at " " @ "]
+                                  [" love " " ♥ "]
+                                  [" I " " i "]
                                   [", " "，"]
                                   ["\\b\\.\\.\\.\\b" "…"]
                                   ["\\. " "。"]
@@ -709,6 +710,7 @@ WARNING: If region has comment or string, the code'd be fucked up."
 
 (defun xah-clean-whitespace (p1 p2)
   "Delete trailing whitespace, and replace sequence of newlines into just 2.
+WARNING: saves buffer if it's a file.
 Work on text selection or whole buffer."
   (interactive
    (if (region-active-p)
@@ -724,6 +726,8 @@ Work on text selection or whole buffer."
       (progn
         (goto-char (point-min))
         (while (search-forward-regexp "\n\n\n+" nil "noerror")
-          (replace-match "\n\n"))))))
+          (replace-match "\n\n")))))
+  (when (buffer-file-name)
+    (save-buffer)))
 
 (provide 'xah-misc-commands)
