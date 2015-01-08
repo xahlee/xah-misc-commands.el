@@ -181,6 +181,7 @@ See also: `xah-remove-punctuation-trailing-redundant-space'."
           [". " "。"]
           [".\n" "。\n"]
           [", " "，"]
+          [",\n" "，\n"]
           [": " "："]
           ["; " "；"]
           ["? " "？"] ; no space after
@@ -554,6 +555,12 @@ Examples of changes:
                                     ["\"$" "”"]
                                     ])
 
+      ;; fix back escaped quotes in code
+      (replace-pairs-region (point-min) (point-max)
+                                   [
+                                    ["\\”" "\\\""]
+                                    ])
+
       ;; fix back. quotes in HTML code
       (replace-regexp-pairs-region (point-min) (point-max)
                                    [
@@ -591,10 +598,13 @@ Examples of changes:
                                   ["\\bare\\b" "r"]
                                   ["\\byou\\b" "u"]
                                   ["\\byour\\b" "ur"]
-                                  ["\\band\\b" "＆"]
+                                  [" and " "＆"]
+                                  [" because " " cuz "]
                                   [" at " " @ "]
                                   [" love " " ♥ "]
                                   [" one " " 1 "]
+                                  [" two " " 2 "]
+                                  [" three " " 3 "]
                                   [" I " " i "]
                                   [", " "，"]
                                   ["\\b\\.\\.\\.\\b" "…"]
@@ -711,7 +721,7 @@ WARNING: If region has comment or string, the code'd be fucked up."
 
 (defun xah-clean-whitespace (p1 p2)
   "Delete trailing whitespace, and replace sequence of newlines into just 2.
-WARNING: saves buffer if it's a file.
+WARNING: This command saves buffer if it's a file.
 Work on text selection or whole buffer."
   (interactive
    (if (region-active-p)
