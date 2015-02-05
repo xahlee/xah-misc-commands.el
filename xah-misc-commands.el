@@ -150,30 +150,31 @@ WARNING: this command is currently unstable."
 
 ;;                                (t (user-error "Your 3rd argument 「%s」 isn't valid" φ-to-direction)) ) ) ) )
 
-(defun xah-convert-english-chinese-punctuation (p1 p2 &optional φ-to-direction)
+(defun xah-convert-english-chinese-punctuation (p1 p2 &optional φto-direction)
   "Convert punctuation from/to English/Chinese Unicode symbols.
 
-When called interactively, do current text block (paragraph) or text selection. The conversion direction is automatically determined.
+When called interactively, do current text block or selection. The conversion direction is automatically determined.
 
-If `universal-argument' is called:
+If `universal-argument' is called, ask user for change direction.
 
- no C-u → Automatic.
- C-u → to English
- C-u 1 → to English
- C-u 2 → to Chinese
+When called in lisp code, p1 p2 are region begin/end positions. φto-direction must be any of the following values: 「\"chinese\"」, 「\"english\"」, 「\"auto\"」.
 
-When called in lisp code, p1 p2 are region begin/end positions. φ-to-direction must be any of the following values: 「\"chinese\"」, 「\"english\"」, 「\"auto\"」.
+See also: `xah-remove-punctuation-trailing-redundant-space'.
 
-See also: `xah-remove-punctuation-trailing-redundant-space'."
+URL `http://ergoemacs.org/emacs/elisp_convert_chinese_punctuation.html'
+Version 2015-02-04
+"
   (interactive
    (let ( (bds (get-selection-or-unit 'block)))
      (list (elt bds 1) (elt bds 2)
-           (cond
-            ((equal current-prefix-arg nil) "auto")
-            ((equal current-prefix-arg '(4)) "english")
-            ((equal current-prefix-arg 1) "english")
-            ((equal current-prefix-arg 2) "chinese")
-            (t "chinese")))))
+           (if current-prefix-arg
+               (ido-completing-read
+                "Change to: "
+                '( "english"  "chinese")
+                "PREDICATE"
+                "REQUIRE-MATCH")
+             "auto"
+             ))))
   (let (
         (inputStr (buffer-substring-no-properties p1 p2))
         (ξ-english-chinese-punctuation-map
@@ -194,26 +195,23 @@ See also: `xah-remove-punctuation-trailing-redundant-space'."
           ]
          ))
 
-    (when (string= φ-to-direction "auto")
-      (if
-          (or (string-match "。" inputStr)
-              (string-match "，" inputStr)
-              (string-match "？" inputStr)
-              (string-match "！" inputStr)) ;; (or (string-match ", " inputStr)
-          ;;     (string-match ".  " inputStr)
-          ;;     (string-match "! " inputStr)
-          ;;     (string-match "? " inputStr)
-          ;;     (string-match ". " inputStr)
-          ;;     )
-          (setq φ-to-direction "english")
-        (setq φ-to-direction "chinese")))
+    (when (string= φto-direction "auto")
+      (setq
+       φto-direction
+       (if
+           (or (string-match "。" inputStr)
+               (string-match "，" inputStr)
+               (string-match "？" inputStr)
+               (string-match "！" inputStr)) 
+           "english"
+         "chinese")))
 
     (replace-pairs-region
      p1 p2
      (cond
-      ((string= φ-to-direction "chinese") ξ-english-chinese-punctuation-map)
-      ((string= φ-to-direction "english") (mapcar (lambda (ξpair) (vector (elt ξpair 1) (elt ξpair 0))) ξ-english-chinese-punctuation-map))
-      (t (user-error "Your 3rd argument 「%s」 isn't valid" φ-to-direction))))))
+      ((string= φto-direction "chinese") ξ-english-chinese-punctuation-map)
+      ((string= φto-direction "english") (mapcar (lambda (ξpair) (vector (elt ξpair 1) (elt ξpair 0))) ξ-english-chinese-punctuation-map))
+      (t (user-error "Your 3rd argument 「%s」 isn't valid" φto-direction))))))
 
 (defun xah-convert-asian/ascii-space (p1 p2)
   "Change all space characters between Asian Ideographic one to ASCII one.
@@ -268,7 +266,7 @@ See also `xah-convert-english-chinese-punctuation'."
                                 ]
                                "FIXEDCASE" "LITERAL"))
 
-(defun xah-convert-fullwidth-chars (φp1 φp2 &optional φ-to-direction)
+(defun xah-convert-fullwidth-chars (φp1 φp2 &optional φto-direction)
   "Convert ASCII chars to/from Unicode fullwidth version.
 
 When called interactively, do text selection or text block (paragraph).
@@ -282,7 +280,7 @@ If `universal-argument' is called:
  C-u 1 → to ASCII
  C-u 2 → to Unicode
 
-When called in lisp code, φp1 φp2 are region begin/end positions. φ-to-direction must be any of the following values: 「\"unicode\"」, 「\"ascii\"」, 「\"auto\"」.
+When called in lisp code, φp1 φp2 are region begin/end positions. φto-direction must be any of the following values: 「\"unicode\"」, 「\"ascii\"」, 「\"auto\"」.
 
 See also: `xah-remove-punctuation-trailing-redundant-space'."
   (interactive
@@ -314,7 +312,7 @@ See also: `xah-remove-punctuation-trailing-redundant-space'."
 
   ;(message "before %s" stateBefore)
   ;(message "after %s" stateAfter)
-  ;(message "φ-to-direction %s" φ-to-direction)
+  ;(message "φto-direction %s" φto-direction)
   ;(message "real-this-command  %s" this-command)
   ;(message "real-last-command %s" last-command)
 
@@ -322,9 +320,9 @@ See also: `xah-remove-punctuation-trailing-redundant-space'."
       (replace-pairs-region
        φp1 φp2
        (cond
-        ((string= φ-to-direction "unicode") ξ-ascii-unicode-map)
-        ((string= φ-to-direction "ascii") ξ-reverse-map)
-        ((string= φ-to-direction "auto")
+        ((string= φto-direction "unicode") ξ-ascii-unicode-map)
+        ((string= φto-direction "ascii") ξ-reverse-map)
+        ((string= φto-direction "auto")
          (if (equal this-command last-command)
              (if (eq stateBefore 0)
                  ξ-ascii-unicode-map
@@ -332,7 +330,7 @@ See also: `xah-remove-punctuation-trailing-redundant-space'."
                )
            ξ-ascii-unicode-map
            ))
-        (t (user-error "Your 3rd argument 「%s」 isn't valid" φ-to-direction)))))
+        (t (user-error "Your 3rd argument 「%s」 isn't valid" φto-direction)))))
     (put 'xah-convert-fullwidth-chars 'state stateAfter)))
 
 (defun xah-convert-latin-alphabet-gothic (φp1 φp2 φreverse-direction-p)
@@ -583,37 +581,73 @@ Examples of changes:
          (p1 (elt bds 1))
          (p2 (elt bds 2)))
     (replace-pairs-region p1 p2 '(
-["fuck" "f��k"]
-["shit" "sh�t"]
-["motherfucker" "momf��ker"]
-))))
-
-(defun xah-twitterfy ()
-  "Shorten words for Twitter 140 char limit."
-  (interactive)
-  (let* ((bds (get-selection-or-unit 'block))
-         (p1 (elt bds 1))
-         (p2 (elt bds 2)))
-    (replace-regexp-pairs-region p1 p2 '(
-                                  ["\\bare\\b" "r"]
-                                  ["\\byou\\b" "u"]
-                                  ["\\byour\\b" "ur"]
-                                  [" and " "＆"]
-                                  ["\\bbecause\\b" "cuz"]
-                                  [" at " " @ "]
-                                  [" love " " ♥ "]
-                                  [" one " " 1 "]
-                                  [" two " " 2 "]
-                                  [" three " " 3 "]
-                                  [" I " " i "]
-                                  [", " "，"]
-                                  ["\\b\\.\\.\\.\\b" "…"]
-                                  ["\\. " "。"]
-                                  ["。 " "。"]
-                                  ["\\? " "？"]
-                                  [": " "："]
-                                  ["! " "！"]
+                                  ["fuck" "f��k"]
+                                  ["shit" "sh�t"]
+                                  ["motherfucker" "momf��ker"]
                                   ))))
+
+(defun xah-twitterfy (p1 p2 &optional φto-direction)
+  "Shorten words for Twitter 140 char limit.
+
+When called interactively, do current text block or selection. The conversion direction is automatically determined.
+
+If `universal-argument' is called, ask for conversion direction.
+
+When called in lisp code, p1 p2 are region begin/end positions. φto-direction must be any of the following values: 「\"auto\"」, 「\"twitterfy\"」, 「\"untwitterfy\"」.
+
+version 2015-02-04
+URL `http://ergoemacs.org/emacs/elisp_twitterfy.html'"
+  (interactive
+   (let ((bds (get-selection-or-unit 'block)))
+     (list
+      (elt bds 1)
+      (elt bds 2)
+      (if current-prefix-arg
+          (ido-completing-read
+           "direction: "
+           '( "twitterfy"  "untwitterfy")
+           "PREDICATE"
+           "REQUIRE-MATCH")
+        "auto"
+        ))))
+  (let (
+        (ξinput-str (buffer-substring-no-properties p1 p2))
+        (ξtwitterfy-map
+         [
+          [" are " " r "]
+          [" you " " u "]
+          [" your" " ur "]
+          [" and " "＆"]
+          ["because" "cuz"]
+          [" at " " @ "]
+          [" love " " ♥ "]
+          [" one " " 1 "]
+          [" two " " 2 "]
+          [" three " " 3 "]
+          [", " "，"]
+          ["..." "…"]
+          [". " "。"]
+          ["? " "？"]
+          [": " "："]
+          ["! " "！"]]
+         ))
+
+    (when (string= φto-direction "auto")
+      (if
+          (or (string-match " u " ξinput-str)
+              (string-match " r " ξinput-str)
+              (string-match "。" ξinput-str)
+              (string-match "，" ξinput-str)
+              (string-match "？" ξinput-str)
+              (string-match "！" ξinput-str))
+          (setq φto-direction "untwitterfy")
+        (setq φto-direction "twitterfy")))
+    (replace-pairs-region
+     p1 p2
+     (cond
+      ((string= φto-direction "twitterfy") ξtwitterfy-map)
+      ((string= φto-direction "untwitterfy") (mapcar (lambda (ξpair) (vector (elt ξpair 1) (elt ξpair 0))) ξtwitterfy-map))
+      (t (user-error "Your 3rd argument 「%s」 isn't valid" φto-direction))))))
 
 (defun xah-remove-vowel-old (&optional ξstring ξfrom ξto)
   "Remove the following letters: {a e i o u}.
@@ -627,19 +661,19 @@ When called in lisp code, if ξstring is non-nil, returns a changed string.  If 
      (let ((bds (bounds-of-thing-at-point 'paragraph)))
        (list nil (car bds) (cdr bds)))))
 
-  (let (workOnStringP inputStr outputStr)
-    (setq workOnStringP (if ξstring t nil))
-    (setq inputStr (if workOnStringP ξstring (buffer-substring-no-properties ξfrom ξto)))
-    (setq outputStr
+  (let (ξwork-on-string-p ξinput-str ξoutput-str)
+    (setq ξwork-on-string-p (if ξstring t nil))
+    (setq ξinput-str (if ξwork-on-string-p ξstring (buffer-substring-no-properties ξfrom ξto)))
+    (setq ξoutput-str
           (let ((case-fold-search t))
-            (replace-regexp-in-string "a\\|e\\|i\\|o\\|u\\|" "" inputStr)))
+            (replace-regexp-in-string "a\\|e\\|i\\|o\\|u\\|" "" ξinput-str)))
 
-    (if workOnStringP
-        outputStr
+    (if ξwork-on-string-p
+        ξoutput-str
       (save-excursion
         (delete-region ξfrom ξto)
         (goto-char ξfrom)
-        (insert outputStr)))))
+        (insert ξoutput-str)))))
 
 (defun xah-remove-vowel (ξstring &optional ξfrom-to-pair)
   "Remove the following letters: {a e i o u}.
@@ -655,23 +689,23 @@ list or vector pair.  Else, returns a changed string."
      (let ((bds (bounds-of-thing-at-point 'paragraph)))
        (list nil (vector (car bds) (cdr bds))))))
 
-  (let (workOnStringP inputStr outputStr ξfrom ξto )
+  (let (ξwork-on-string-p ξinput-str ξoutput-str ξfrom ξto )
     (when ξfrom-to-pair
       (setq ξfrom (elt ξfrom-to-pair 0))
       (setq ξto (elt ξfrom-to-pair 1)))
 
-    (setq workOnStringP (if ξfrom-to-pair nil t))
-    (setq inputStr (if workOnStringP ξstring (buffer-substring-no-properties ξfrom ξto)))
-    (setq outputStr
+    (setq ξwork-on-string-p (if ξfrom-to-pair nil t))
+    (setq ξinput-str (if ξwork-on-string-p ξstring (buffer-substring-no-properties ξfrom ξto)))
+    (setq ξoutput-str
           (let ((case-fold-search t))
-            (replace-regexp-in-string "a\\|e\\|i\\|o\\|u\\|" "" inputStr)))
+            (replace-regexp-in-string "a\\|e\\|i\\|o\\|u\\|" "" ξinput-str)))
 
-    (if workOnStringP
-        outputStr
+    (if ξwork-on-string-p
+        ξoutput-str
       (save-excursion
         (delete-region ξfrom ξto)
         (goto-char ξfrom)
-        (insert outputStr)))))
+        (insert ξoutput-str)))))
 
 
 
