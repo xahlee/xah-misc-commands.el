@@ -343,30 +343,46 @@ See also: `xah-remove-punctuation-trailing-redundant-space'."
 "⟦⟧" "⟨⟩" "⟪⟫" "⟮⟯" "⟬⟭" "❛❜" "❝❞" "❨❩" "❪❫" "❴❵" "❬❭" "❮❯" "❰❱"
 ))
 
-(defun xah-remove-quotes-or-brackets (φbracketType)
-  "Remove quotes/brackets
-Works on current block or text selection.
-"
+(defun xah-remove-quotes-or-brackets (φp1 φp2 φbracketType)
+  "Remove quotes/brackets in current line or text selection.
+
+When called in lisp program, φp1 φp2 are region begin/end position, φbracketType is a string of a bracket pair. ⁖ \"()\",  \"[]\", etc.
+URL `http://ergoemacs.org/emacs/elisp_change_brackets.html'
+Version 2015-04-12"
   (interactive
-   (list (ido-completing-read "from:" xah-bracketsList) ) )
+   (let ((ξbracketsList
+          '("()" "{}" "[]" "<>" "“”" "‘’" "‹›" "«»" "「」" "『』" "【】" "〖〗" "〈〉" "《》" "〔〕" "⦅⦆" "〚〛" "⦃⦄" "〈〉" "⦑⦒" "⧼⧽" "⟦⟧" "⟨⟩" "⟪⟫" "⟮⟯" "⟬⟭" "❛❜" "❝❞" "❨❩" "❪❫" "❴❵" "❬❭" "❮❯" "❰❱")))
+     (if (use-region-p)
+         (progn (list
+                 (region-beginning)
+                 (region-end)
+                 (ido-completing-read "Remove:" ξbracketsList )))
+       (progn
+         (list
+          (line-beginning-position)
+          (line-end-position)
+          (ido-completing-read "Remove:" ξbracketsList ))))))
   (let* (
-         (ξboundary (get-selection-or-unit 'block))
-         (p1 (elt ξboundary 1))
-         (p2 (elt ξboundary 2))
-         )
-    (replace-regexp-pairs-region p1 p2
-                                 (vector
-                                  (vector (substring φbracketType 0 1) "")
-                                  (vector (substring φbracketType 1 2) "")
-                                  )
-                                 "FIXEDCASE" "LITERAL")
-    ) )
+         (ξfindReplaceMap
+          (vector
+           (vector (char-to-string (elt φbracketType 0)) (char-to-string (elt φbracketType 0)))
+           (vector (char-to-string (elt φbracketType 1)) (char-to-string (elt φbracketType 1))))))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region φp1 φp2)
+        (let ( (case-fold-search nil))
+          (mapc
+           (lambda (ξx)
+             (goto-char (point-min))
+             (while (search-forward (elt ξx 0) nil t)
+               (replace-match "" 'FIXEDCASE 'LITERAL)))
+           ξfindReplaceMap))))))
 
 (defun xah-change-bracket-pairs (φp1 φp2 φfromType φtoType)
   "Change bracket pairs from one type to another on current line or selection.
 For example, change all parenthesis () to square brackets [].
 
-When called in lisp program, φp1 φp1 are region begin/end position, φfromType or φtoType is a string of a bracket pair. ⁖ \"()\",  \"[]\", etc.
+When called in lisp program, φp1 φp2 are region begin/end position, φfromType or φtoType is a string of a bracket pair. ⁖ \"()\",  \"[]\", etc.
 URL `http://ergoemacs.org/emacs/elisp_change_brackets.html'
 Version 2015-04-12"
   (interactive
