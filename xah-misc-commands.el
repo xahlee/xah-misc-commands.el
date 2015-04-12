@@ -366,22 +366,24 @@ Works on current block or text selection.
   "Change bracket pairs from one type to another on current line or selection.
 For example, change all parenthesis () to square brackets [].
 
-When called in lisp program, φp1 φp1 are region begin/end position, φfromType and φtoType is a string of a bracket pair. ⁖ \"()\",  \"[]\", etc.
+When called in lisp program, φp1 φp1 are region begin/end position, φfromType or φtoType is a string of a bracket pair. ⁖ \"()\",  \"[]\", etc.
 URL `http://ergoemacs.org/emacs/elisp_change_brackets.html'
 Version 2015-04-12"
   (interactive
-   (if (use-region-p)
-       (progn (list
-               (region-beginning)
-               (region-end)
-               (ido-completing-read "Replace this:" xah-bracketsList )
-               (ido-completing-read "To:" xah-bracketsList )))
-     (progn
-       (list
-        (line-beginning-position)
-        (line-end-position)
-        (ido-completing-read "Replace this:" xah-bracketsList )
-        (ido-completing-read "To:" xah-bracketsList )))))
+   (let ((ξbracketsList
+          '("()" "{}" "[]" "<>" "“”" "‘’" "‹›" "«»" "「」" "『』" "【】" "〖〗" "〈〉" "《》" "〔〕" "⦅⦆" "〚〛" "⦃⦄" "〈〉" "⦑⦒" "⧼⧽" "⟦⟧" "⟨⟩" "⟪⟫" "⟮⟯" "⟬⟭" "❛❜" "❝❞" "❨❩" "❪❫" "❴❵" "❬❭" "❮❯" "❰❱")))
+     (if (use-region-p)
+         (progn (list
+                 (region-beginning)
+                 (region-end)
+                 (ido-completing-read "Replace this:" ξbracketsList )
+                 (ido-completing-read "To:" ξbracketsList )))
+       (progn
+         (list
+          (line-beginning-position)
+          (line-end-position)
+          (ido-completing-read "Replace this:" ξbracketsList )
+          (ido-completing-read "To:" ξbracketsList ))))))
   (let* (
          (ξfindReplaceMap
           (vector
