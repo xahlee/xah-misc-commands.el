@@ -230,7 +230,7 @@ See also `xah-convert-english-chinese-punctuation'
           ["　" " "]
           ]
          ))
-    (replace-regexp-pairs-region p1 p2
+    (xah-replace-regexp-pairs-region p1 p2
                                  (if (string-match "　" (buffer-substring-no-properties p1 p2))
                                      ξ-space-char-map
                                    (mapcar (lambda (ξpair) (vector (elt ξpair 1) (elt ξpair 0))) ξ-space-char-map))
@@ -250,7 +250,7 @@ version 2015-02-04
   (interactive
    (let ((ξboundary (get-selection-or-unit 'block)))
      (list (elt ξboundary 1) (elt ξboundary 2))))
-  (replace-regexp-pairs-region φp1 φp2
+  (xah-replace-regexp-pairs-region φp1 φp2
                                [
                                 ;; clean up. Remove extra space.
                                 [" +," ","]
@@ -435,7 +435,7 @@ list or vector pair.  Else, returns a changed string."
   "Replace any sequence of whitespace chars to a single space on region.
 Whitespace here is considered any of {newline char, tab, space}."
   (interactive "r")
-  (replace-regexp-pairs-region p1 p2
+  (xah-replace-regexp-pairs-region p1 p2
                                '( ["[\n\t]+" " "]
                                   ["  +" " "])
                                t))
@@ -448,7 +448,7 @@ WARNING: If region has comment or string, the code'd be fucked up."
   (save-excursion
     (save-restriction
       (narrow-to-region p1 p2)
-      (replace-regexp-pairs-region p1 p2
+      (xah-replace-regexp-pairs-region p1 p2
                                    '(
                                      ["{" "{\n"]
                                      [";" ";\n"]
