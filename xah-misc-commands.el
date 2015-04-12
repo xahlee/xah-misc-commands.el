@@ -362,26 +362,41 @@ Works on current block or text selection.
                                  "FIXEDCASE" "LITERAL")
     ) )
 
-(defun xah-change-bracket-pairs (φfromType φtoType)
-  "Change bracket pairs from one type to another on text selection or text block.
+(defun xah-change-bracket-pairs (φp1 φp2 φfromType φtoType)
+  "Change bracket pairs from one type to another on current line or selection.
 For example, change all parenthesis () to square brackets [].
 
-When called in lisp program, φfromType and φtoType is a string of a bracket pair. ⁖ \"()\", likewise for φtoType."
+When called in lisp program, φp1 φp1 are region begin/end position, φfromType and φtoType is a string of a bracket pair. ⁖ \"()\",  \"[]\", etc.
+URL `http://ergoemacs.org/emacs/elisp_change_brackets.html'
+Version 2015-04-12"
   (interactive
-   (let ( )
-     (list
-      (ido-completing-read "Replace this:" xah-bracketsList )
-      (ido-completing-read "To:" xah-bracketsList ) ) ) )
+   (if (use-region-p)
+       (progn (list
+               (region-beginning)
+               (region-end)
+               (ido-completing-read "Replace this:" xah-bracketsList )
+               (ido-completing-read "To:" xah-bracketsList )))
+     (progn
+       (list
+        (line-beginning-position)
+        (line-end-position)
+        (ido-completing-read "Replace this:" xah-bracketsList )
+        (ido-completing-read "To:" xah-bracketsList )))))
   (let* (
-         (ξboundary (get-selection-or-unit 'block))
-         (p1 (elt ξboundary 1))
-         (p2 (elt ξboundary 2))
-         (changePairs (vector
-                 (vector (char-to-string (elt φfromType 0)) (char-to-string (elt φtoType 0)))
-                 (vector (char-to-string (elt φfromType 1)) (char-to-string (elt φtoType 1)))
-                 ))
-         )
-    (xah-replace-pairs-region p1 p2 changePairs) ) )
+         (ξfindReplaceMap
+          (vector
+           (vector (char-to-string (elt φfromType 0)) (char-to-string (elt φtoType 0)))
+           (vector (char-to-string (elt φfromType 1)) (char-to-string (elt φtoType 1))))))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region φp1 φp2)
+        (let ( (case-fold-search nil))
+          (mapc
+           (lambda (ξx)
+             (goto-char (point-min))
+             (while (search-forward (elt ξx 0) nil t)
+               (replace-match (elt ξx 1) 'FIXEDCASE 'LITERAL)))
+           ξfindReplaceMap))))))
 
 (defun xah-replace-slanted-apostrophe ()
   "Replace some single curly apostrophe to straight version,
